@@ -2,22 +2,36 @@
 blueprint:
   name: deCONZ - IKEA E2123 SYMFONISK Gen 2 Remote
   description: |
-    # Controller - IKEA E1744 SYMFONISK Gen 2 Remote
+    # Controller - IKEA E2123 SYMFONISK Gen 2 Remote
 
     Controller automation for executing any kind of action triggered by the provided IKEA E2123 SYMFONISK Gen 2 Remote.
     Supports deCONZ
 
-    ℹ️ Version 2023.XX.XX
+    Based on the Awesome HA Blueprints
+    ---> https://epmatt.github.io/awesome-ha-blueprints/
+
+    Made compatible for IKEA Symfonisk Gen 2 by niklas389@GitHub
+    ---> 
+
+    ℹ️ Version 2023.41.001
   domain: automation
   input:
-    integration:
-      name: deCONZ
+    # integration:
+    #   name: (Required) Integration
+    #   description: Integration used for connecting the remote with Home Assistant. Select one of the available values.
+    #   selector:
+    #     select:
+    #       options:
+    #         - deCONZ
+    #         - ZHA
+    #         - Zigbee2MQTT
     controller_device:
       name: (deCONZ) Controller Device
       description: The controller device to use for the automation.
-      default: ''
+      default: ""
       selector:
         device:
+          integration: deconz
 
     media_player:
       name: Media Player
@@ -30,80 +44,80 @@ blueprint:
     volume_steps:
       name: Volume number of steps
       description: Controls the volume scale. The default of 25 is the same scale as the Sonos app.
-      default: 25
+      default: 0.02
       selector:
         number:
-          min: 5
-          max: 50
-          step: 5
+          min: 0.01
+          max: 0.1
+          step: 0.01
           unit_of_measurement: "Num"
           mode: slider
 
-
     # inputs for custom actions
-    # action_playpause:
-    #   name: (Optional) Play/Pause button short press
-    #   description: Action to run on Play/Pause button press.
-    #   default: []
-    #   selector:
-    #     action:
-    # action_previous:
-    #   name: (Optional) Previous button short press
-    #   description: Action to run on previous button press.
-    #   default: []
-    #   selector:
-    #     action:
-    # action_skip:
-    #   name: (Optional) Skip button short press
-    #   description: Action to run on skip button press.
-    #   default: []
-    #   selector:
-    #     action:
-    # action_volume_up:
-    #   name: (Optional) Volume UP button short press
-    #   description: Action to run on Volume UP button press.
-    #   default: []
-    #   selector:
-    #     action:
-    # action_volume_down:
-    #   name: (Optional) Volume DOWN button short press
-    #   description: Action to run on Volume DOWN button press.
-    #   default: []
-    #   selector:
-    #     action:
+    action_playpause:
+      name: (Optional) Play/Pause button short press
+      description: Action to run on Play/Pause button press.
+      default: []
+      selector:
+        action:
+    action_previous:
+      name: (Optional) Previous button short press
+      description: Action to run on previous button press.
+      default: []
+      selector:
+        action:
+    action_skip:
+      name: (Optional) Skip button short press
+      description: Action to run on skip button press.
+      default: []
+      selector:
+        action:
+    action_volume_up:
+      name: (Optional) Volume UP button short press
+      description: Action to run on Volume UP button press.
+      default: []
+      selector:
+        action:
+    action_volume_down:
+      name: (Optional) Volume DOWN button short press
+      description: Action to run on Volume DOWN button press.
+      default: []
+      selector:
+        action:
     action_single_dot_short:
-      name: (Optional) Single Dot button short press
-      description: Action to run on short single dot button press.
+      name: (Optional) Left Shortcut short press
+      description: Action to run on Left Shortcut press.
       default: []
       selector:
         action:
     action_single_dot_long:
-      name: (Optional) Single Dot button long press
-      description: Action to run on long single dot button press.
+      name: (Optional) Left Shortcut long press
+      description: Action to run on Left Shortcut long press.
       default: []
       selector:
         action:
     action_single_dot_double:
-      name: (Optional) Single Dot button double press
-      description: Action to run on double single dot button press.
+      name: (Optional) Left Shortcut double press
+      description: Action to run on Left Shortcut double press.
       default: []
       selector:
         action:
+
     action_double_dot_short:
-      name: (Optional) Double Dot button short press
-      description: Action to run on short double dot button press.
+      name: (Optional) Right Shortcut short press
+      description: Action to run on Right Shortcut press.
       default: []
       selector:
         action:
     action_double_dot_long:
-      name: (Optional) Double Dot button long press
-      description: Action to run on long double dot button press.
+      name: (Optional) Right Shortcut long press
+      description: Action to run on Right Shortcut long press.
       default: []
       selector:
         action:
     action_double_dot_double:
-      name: (Optional) Double Dot button double press
-      description: Action to run on double double dot button press.
+      name: (Optional) Right Shortcut double press
+      description: Action to run on Right Shortcut double press.
       default: []
       selector:
         action:
@@ -111,28 +125,34 @@ blueprint:
 # Automation schema
 variables:
   # convert input tags to variables, to be used in templates
-  integration: !input integration
-  helper_last_controller_event: !input helper_last_controller_event
+  # integration: !input integration
   # integration id used to select items in the action mapping
-  integration_id: '{{ integration | lower }}'
+  integration_id: "{{ integration | lower }}"
 
-  single_dot_short: ['6000']
+  single_dot_short: ["6002"] #wait for button up, 6000 for instant
   # single_dot_release: ['6002'. '6003']
-  single_dot_doublepress: ['6004']
-  single_dot_longpress: ['6001']
+  single_dot_double: ["6004"]
+  single_dot_long: ["6001"]
 
-  double_dot_short: ['7000']
+  double_dot_short: ["7002"] #wait for button up, 7000 for instant
   # double_dot_release: ['7002', '7003']
-  double_dot_long: ['7001']
-  double_dot_double: ['7004']
+  double_dot_long: ["7001"]
+  double_dot_double: ["7004"]
 
-
+  playpause_press: ["1002"]
+  volume_up_press: ["2001", "2002"]
+  volume_down_press: ["3001", "3002"]
+  previous_press: ["4002"]
+  skip_press: ["5002"]
 
   # build data to send within a controller event
-  controller_entity: !input controller_entity
   controller_device: !input controller_device
-  controller_id: '{{controller_device}}'
-  
+  controller_id: "{{controller_device}}"
+
+  player: !input "media_player"
+  steps: !input volume_steps
+  # stepsize: '{{ steps / 100 }}'
+
 mode: restart
 max_exceeded: silent
 trigger:
@@ -157,16 +177,232 @@ action:
         {{ trigger.event.data.event }}
 
   - choose:
-      - conditions: '{{ trigger_action | string in single_dot_short }}'
+      - conditions: "{{ trigger_action | string in single_dot_short }}"
         sequence:
           - choose:
             default:
               # fire the event
               - event: ahb_controller_event
                 event_data:
-                  controller: '{{ controller_id }}'
+                  controller: "{{ controller_id }}"
                   action: single_dot_short
               # run the custom action
               - choose:
                   - conditions: []
                     sequence: !input action_single_dot_short
+  - choose:
+      - conditions: "{{ trigger_action | string in single_dot_long }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: single_dot_long
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_single_dot_long
+  - choose:
+      - conditions: "{{ trigger_action | string in single_dot_double }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: single_dot_double
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_single_dot_double
+
+  - choose:
+      - conditions: "{{ trigger_action | string in double_dot_short }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: double_dot_short
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_double_dot_short
+  - choose:
+      - conditions: "{{ trigger_action | string in double_dot_long }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: double_dot_long
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_double_dot_long
+
+  - choose:
+      - conditions: "{{ trigger_action | string in double_dot_double }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: double_dot_double
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_double_dot_double
+
+  - choose:
+      - conditions: "{{ trigger_action | string in playpause_press }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: playpause_press
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_playpause
+
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in playpause_press }}'
+  #       sequence:
+  #       - service: media_player.media_play_pause
+  #         entity_id: !input 'media_player'
+
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in previous_press }}'
+  #       sequence:
+  #       - service: media_player.media_previous_track
+  #         entity_id: !input 'media_player'
+
+  - choose:
+      - conditions: "{{ trigger_action | string in previous_press }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: previous_press
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_previous
+
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in skip_press }}'
+  #       sequence:
+  #       - service: media_player.media_next_track
+  #         entity_id: !input 'media_player'
+
+  - choose:
+      - conditions: "{{ trigger_action | string in skip_press }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: skip_press
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_skip
+
+  - choose:
+      - conditions: "{{ trigger_action | string in volume_up_press }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: volume_up_press
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_volume_up
+
+  - choose:
+      - conditions: "{{ trigger_action | string in volume_down_press }}"
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: "{{ controller_id }}"
+                  action: volume_down_press
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_volume_down
+
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in volume_up_press }}'
+  #       sequence:
+  #       - service: media_player.volume_set
+  #         target:
+  #           entity_id: "{{ player }}"
+  #         data:
+  #           volume_level: >-
+  #             {% set volume = state_attr(player, "volume_level") + steps %}
+  #             {{ 0.0 if volume < 0.0 else volume }}
+
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in volume_down_press }}'
+  #       sequence:
+  #       - service: media_player.volume_set
+  #         target:
+  #           entity_id: "{{ player }}"
+  #         data:
+  #           volume_level: >-
+  #             {% set volume = state_attr(player, "volume_level") - steps %}
+  #             {{ 0.0 if volume < 0.0 else volume }}
+
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in volume_up_press }}'
+  #       sequence:
+  #         - choose:
+  #           default:
+  #             # fire the event
+  #             - event: ahb_controller_event
+  #               event_data:
+  #                 controller: '{{ controller_id }}'
+  #                 action: volume_up_press
+  #             # run the custom action
+  #             - choose:
+  #                 - conditions: []
+  #                   sequence: !input action_volume_up
+  # - choose:
+  #     - conditions: '{{ trigger_action | string in volume_down_press }}'
+  #       sequence:
+  #         - choose:
+  #           default:
+  #             # fire the event
+  #             - event: ahb_controller_event
+  #               event_data:
+  #                 controller: '{{ controller_id }}'
+  #                 action: volume_down_press
+  #             # run the custom action
+  #             - choose:
+  #                 - conditions: []
+  #                   sequence: !input action_volume_down
