@@ -1,0 +1,172 @@
+# Blueprint metadata
+blueprint:
+  name: deCONZ - IKEA E2123 SYMFONISK Gen 2 Remote
+  description: |
+    # Controller - IKEA E1744 SYMFONISK Gen 2 Remote
+
+    Controller automation for executing any kind of action triggered by the provided IKEA E2123 SYMFONISK Gen 2 Remote.
+    Supports deCONZ
+
+    ℹ️ Version 2023.XX.XX
+  domain: automation
+  input:
+    integration:
+      name: deCONZ
+    controller_device:
+      name: (deCONZ) Controller Device
+      description: The controller device to use for the automation.
+      default: ''
+      selector:
+        device:
+
+    media_player:
+      name: Media Player
+      description: The media player to control with this automation
+      selector:
+        entity:
+          domain: media_player
+          multiple: false
+
+    volume_steps:
+      name: Volume number of steps
+      description: Controls the volume scale. The default of 25 is the same scale as the Sonos app.
+      default: 25
+      selector:
+        number:
+          min: 5
+          max: 50
+          step: 5
+          unit_of_measurement: "Num"
+          mode: slider
+
+
+    # inputs for custom actions
+    # action_playpause:
+    #   name: (Optional) Play/Pause button short press
+    #   description: Action to run on Play/Pause button press.
+    #   default: []
+    #   selector:
+    #     action:
+    # action_previous:
+    #   name: (Optional) Previous button short press
+    #   description: Action to run on previous button press.
+    #   default: []
+    #   selector:
+    #     action:
+    # action_skip:
+    #   name: (Optional) Skip button short press
+    #   description: Action to run on skip button press.
+    #   default: []
+    #   selector:
+    #     action:
+    # action_volume_up:
+    #   name: (Optional) Volume UP button short press
+    #   description: Action to run on Volume UP button press.
+    #   default: []
+    #   selector:
+    #     action:
+    # action_volume_down:
+    #   name: (Optional) Volume DOWN button short press
+    #   description: Action to run on Volume DOWN button press.
+    #   default: []
+    #   selector:
+    #     action:
+    action_single_dot_short:
+      name: (Optional) Single Dot button short press
+      description: Action to run on short single dot button press.
+      default: []
+      selector:
+        action:
+    action_single_dot_long:
+      name: (Optional) Single Dot button long press
+      description: Action to run on long single dot button press.
+      default: []
+      selector:
+        action:
+    action_single_dot_double:
+      name: (Optional) Single Dot button double press
+      description: Action to run on double single dot button press.
+      default: []
+      selector:
+        action:
+    action_double_dot_short:
+      name: (Optional) Double Dot button short press
+      description: Action to run on short double dot button press.
+      default: []
+      selector:
+        action:
+    action_double_dot_long:
+      name: (Optional) Double Dot button long press
+      description: Action to run on long double dot button press.
+      default: []
+      selector:
+        action:
+    action_double_dot_double:
+      name: (Optional) Double Dot button double press
+      description: Action to run on double double dot button press.
+      default: []
+      selector:
+        action:
+
+# Automation schema
+variables:
+  # convert input tags to variables, to be used in templates
+  integration: !input integration
+  helper_last_controller_event: !input helper_last_controller_event
+  # integration id used to select items in the action mapping
+  integration_id: '{{ integration | lower }}'
+
+  single_dot_short: ['6000']
+  # single_dot_release: ['6002'. '6003']
+  single_dot_doublepress: ['6004']
+  single_dot_longpress: ['6001']
+
+  double_dot_short: ['7000']
+  # double_dot_release: ['7002', '7003']
+  double_dot_long: ['7001']
+  double_dot_double: ['7004']
+
+
+
+  # build data to send within a controller event
+  controller_entity: !input controller_entity
+  controller_device: !input controller_device
+  controller_id: '{{controller_device}}'
+  
+mode: restart
+max_exceeded: silent
+trigger:
+  - platform: event
+    event_type:
+      - deconz_event
+    event_data:
+      device_id: !input controller_device
+condition:
+  - condition: and
+    conditions:
+      # check that the button event is not empty
+      - >-
+        {%- set trigger_action -%}
+        {{ trigger.event.data.event }}
+        {%- endset -%}
+        {{ trigger_action not in ["","None"] }}
+
+action:
+  - variables:
+      trigger_action: >-
+        {{ trigger.event.data.event }}
+
+  - choose:
+      - conditions: '{{ trigger_action | string in single_dot_short }}'
+        sequence:
+          - choose:
+            default:
+              # fire the event
+              - event: ahb_controller_event
+                event_data:
+                  controller: '{{ controller_id }}'
+                  action: single_dot_short
+              # run the custom action
+              - choose:
+                  - conditions: []
+                    sequence: !input action_single_dot_short
